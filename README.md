@@ -82,9 +82,15 @@ Iac-aws/
 
 # 구축 (~20분)
 ./scripts/up.sh
+## [1/5] terraform apply 1-base     ← EKS 생성만 ~15분                          
+## [2/5] kubeconfig 설정
+## [3/5] EC2 user_data 완료 대기    ← Node.js/Python 설치, 레포 클론
+## [4/5] terraform apply 2-platform ← Istio/모니터링/Chaos Mesh/Online Boutique
+## [5/5] EC2 port-forward + Next.js 시작  
 
 # 삭제 (비용 $0)
 ./scripts/down.sh
+## "yes" 입력 → 전체 삭제 → 비용 $0 
 ```
 
 ---
