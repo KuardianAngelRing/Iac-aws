@@ -35,3 +35,24 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+.omc
+docs
+
+# 환경 변수 / 시크릿
+.env
+.env.local
+*.env
+
+# SSH 키
+*.pem
+*.key
+
+# kubeconfig
+kubeconfig
+kubeconfig.yaml
+
+# macOS
+.DS_Store
+.DS_Store?
+**/.DS_Store

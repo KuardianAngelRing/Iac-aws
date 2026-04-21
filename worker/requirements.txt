@@ -1,0 +1,6 @@
+# Phase 3에서 채워질 예정
+# langgraph
+# anthropic
+# supabase
+# prometheus-api-client
+# httpx
