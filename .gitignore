@@ -36,7 +36,7 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-.omc
+# DOCS
 docs
 
 # 환경 변수 / 시크릿
@@ -57,5 +57,6 @@ kubeconfig.yaml
 .DS_Store?
 **/.DS_Store
 
-# Claude 컨텍스트 (로컬 전용)
+# CLAUDE
 CLAUDE.md
+.omc
