@@ -56,3 +56,6 @@ kubeconfig.yaml
 .DS_Store
 .DS_Store?
 **/.DS_Store
+
+# Claude 컨텍스트 (로컬 전용)
+CLAUDE.md
