@@ -3,7 +3,7 @@ resource "helm_release" "istio_base" {
   repository       = "https://istio-release.storage.googleapis.com/charts"
   chart            = "base"
   namespace        = "istio-system"
-  version          = "1.22.3"
+  version          = "1.29.2"
   create_namespace = false
 
   depends_on = [kubernetes_namespace.istio_system]
@@ -14,7 +14,7 @@ resource "helm_release" "istiod" {
   repository       = "https://istio-release.storage.googleapis.com/charts"
   chart            = "istiod"
   namespace        = "istio-system"
-  version          = "1.22.3"
+  version          = "1.29.2"
   create_namespace = false
   timeout          = 300
 
@@ -24,7 +24,7 @@ resource "helm_release" "istiod" {
       defaultConfig:
         proxyStatsMatcher:
           inclusionRegexps:
-            - ".*"  # 모든 Istio 메트릭 수집 (Prometheus용)
+            - ".*"
     YAML
   ]
 
@@ -36,7 +36,7 @@ resource "helm_release" "istio_gateway" {
   repository       = "https://istio-release.storage.googleapis.com/charts"
   chart            = "gateway"
   namespace        = "istio-system"
-  version          = "1.22.3"
+  version          = "1.29.2"
   create_namespace = false
 
   depends_on = [helm_release.istiod]

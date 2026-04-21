@@ -16,6 +16,18 @@ if [ "$CONFIRM" != "yes" ]; then
   exit 0
 fi
 
+# ── LoadBalancer 사전 삭제 ───────────────────────────────────────
+# Online Boutique의 ELB가 남아있으면 VPC destroy가 영구히 멈춤
+echo ""
+echo "=== [0/2] LoadBalancer 서비스 사전 삭제 ==="
+if command -v kubectl &>/dev/null; then
+  aws eks update-kubeconfig --name chaos-eks --region ap-northeast-2 2>/dev/null || true
+  kubectl delete svc -n online-boutique --all --timeout=90s 2>/dev/null || true
+  echo "  LoadBalancer 삭제 완료 (또는 이미 없음)"
+else
+  echo "  kubectl 없음 — 건너뜀 (EKS 접근 불가 시 정상)"
+fi
+
 # ── Phase 2 플랫폼 삭제 ─────────────────────────────────────────
 echo ""
 echo "=== [1/2] 플랫폼 삭제 (Helm 릴리스 + K8s 리소스) ==="

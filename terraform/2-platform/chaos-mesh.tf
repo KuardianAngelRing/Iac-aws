@@ -3,7 +3,7 @@ resource "helm_release" "chaos_mesh" {
   repository       = "https://charts.chaos-mesh.org"
   chart            = "chaos-mesh"
   namespace        = "chaos-mesh"
-  version          = "2.6.3"
+  version          = "2.8.2"
   create_namespace = false
   timeout          = 300
 

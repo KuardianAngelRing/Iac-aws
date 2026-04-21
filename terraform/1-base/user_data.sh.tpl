@@ -27,7 +27,6 @@ echo "[5/7] Helm 설치..."
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 echo "[6/7] 레포 클론..."
-# GitHub 레포가 private이면 Deploy Key 또는 PAT 설정 필요
 cd /home/ec2-user
 
 git clone ${iac_aws_repo} Iac-aws || {
@@ -66,10 +65,14 @@ ENVEOF
 [ -f /home/ec2-user/Iac-aws/worker/requirements.txt ] && \
   pip3 install -r /home/ec2-user/Iac-aws/worker/requirements.txt || true
 
-# Next.js 빌드
+# Next.js 빌드 — 성공 여부를 sentinel 파일로 분리
 cd /home/ec2-user/iac-nextjs
 npm install
-npm run build || echo "WARNING: Next.js 빌드 실패 — 소스 없으면 Phase 2 후 재시도"
+if npm run build; then
+  touch /var/log/nextjs_build_done
+else
+  echo "WARNING: Next.js 빌드 실패 — Phase 2 완료 후 EC2에서 수동 재빌드 필요"
+fi
 
 # 권한 정리
 chown -R ec2-user:ec2-user /home/ec2-user/

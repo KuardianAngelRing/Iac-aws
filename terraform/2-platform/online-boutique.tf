@@ -1,14 +1,14 @@
 resource "helm_release" "online_boutique" {
   name      = "onlineboutique"
   chart     = "oci://us-docker.pkg.dev/online-boutique-ci/charts/onlineboutique"
+  version   = "0.10.5"
   namespace = "online-boutique"
   timeout   = 600
 
-  # Spot 노드에서 실행 (workload 노드 그룹)
   values = [
     <<-YAML
     frontend:
-      externalService: true  # LoadBalancer 타입 — 외부 접근용
+      externalService: true
     YAML
   ]
 

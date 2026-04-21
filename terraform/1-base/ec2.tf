@@ -25,11 +25,6 @@ resource "aws_iam_role" "ec2_role" {
   tags = local.common_tags
 }
 
-resource "aws_iam_role_policy_attachment" "ec2_eks" {
-  role       = aws_iam_role.ec2_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
 resource "aws_iam_role_policy_attachment" "ec2_ecr" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
@@ -57,7 +52,7 @@ resource "aws_security_group" "ec2_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_ip_cidr]
   }
 
   ingress {
@@ -65,7 +60,7 @@ resource "aws_security_group" "ec2_sg" {
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.my_ip_cidr]
   }
 
   egress {

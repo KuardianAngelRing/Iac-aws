@@ -41,6 +41,12 @@ variable "anthropic_key" {
   sensitive   = true
 }
 
+variable "my_ip_cidr" {
+  description = "관리자 IP CIDR (SSH + EKS endpoint + Next.js 접근 제한). 예: 123.45.67.89/32"
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
 variable "tfstate_bucket" {
   description = "Terraform 상태 S3 버킷 (선택 — 팀 협업 시)"
   default     = ""

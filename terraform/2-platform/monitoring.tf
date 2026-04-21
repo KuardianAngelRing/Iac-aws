@@ -3,13 +3,12 @@ resource "helm_release" "kube_prometheus_stack" {
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
   namespace        = "monitoring"
-  version          = "61.7.0"
+  version          = "83.7.0"
   create_namespace = false
   timeout          = 600
 
   values = [
     <<-YAML
-    # On-demand(system) 노드에만 스케줄링
     prometheus:
       prometheusSpec:
         tolerations:
@@ -21,6 +20,14 @@ resource "helm_release" "kube_prometheus_stack" {
           role: system
         scrapeInterval: 15s
         retention: 7d
+        additionalScrapeConfigs:
+          - job_name: istio-mesh
+            kubernetes_sd_configs:
+              - role: endpoints
+                namespaces:
+                  names:
+                    - istio-system
+                    - online-boutique
 
     grafana:
       tolerations:
@@ -30,8 +37,6 @@ resource "helm_release" "kube_prometheus_stack" {
           effect: NoSchedule
       nodeSelector:
         role: system
-      adminPassword: "admin123"
-      # Loki 데이터소스 자동 연결
       additionalDataSources:
         - name: Loki
           type: loki
@@ -47,38 +52,49 @@ resource "helm_release" "kube_prometheus_stack" {
             effect: NoSchedule
         nodeSelector:
           role: system
-
-    # Istio 메트릭 수집을 위한 추가 스크랩 설정
-    prometheus:
-      prometheusSpec:
-        additionalScrapeConfigs:
-          - job_name: istio-mesh
-            kubernetes_sd_configs:
-              - role: endpoints
-                namespaces:
-                  names:
-                    - istio-system
-                    - online-boutique
     YAML
   ]
+
+  set_sensitive {
+    name  = "grafana.adminPassword"
+    value = var.grafana_admin_password
+  }
 
   depends_on = [kubernetes_namespace.monitoring]
 }
 
-resource "helm_release" "loki_stack" {
+# loki-stack(deprecated) → loki 6.x SingleBinary 모드로 교체
+resource "helm_release" "loki" {
   name             = "loki"
   repository       = "https://grafana.github.io/helm-charts"
-  chart            = "loki-stack"
+  chart            = "loki"
   namespace        = "monitoring"
-  version          = "2.10.2"
+  version          = "6.7.3"
   create_namespace = false
   timeout          = 300
 
   values = [
     <<-YAML
+    deploymentMode: SingleBinary
     loki:
+      auth_enabled: false
+      commonConfig:
+        replication_factor: 1
+      storage:
+        type: filesystem
+      schemaConfig:
+        configs:
+          - from: "2024-01-01"
+            store: tsdb
+            object_store: filesystem
+            schema: v13
+            index:
+              prefix: loki_index_
+              period: 24h
+    singleBinary:
+      replicas: 1
       persistence:
-        enabled: false  # 개발 환경 — 영구 볼륨 불필요
+        enabled: false
       tolerations:
         - key: system-only
           operator: Equal
@@ -86,17 +102,42 @@ resource "helm_release" "loki_stack" {
           effect: NoSchedule
       nodeSelector:
         role: system
-
-    promtail:
-      # DaemonSet이므로 모든 노드에서 실행 (toleration 필요)
-      tolerations:
-        - key: system-only
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
-        - operator: Exists
+    gateway:
+      enabled: false
+    backend:
+      replicas: 0
+    read:
+      replicas: 0
+    write:
+      replicas: 0
     YAML
   ]
 
   depends_on = [helm_release.kube_prometheus_stack]
+}
+
+resource "helm_release" "promtail" {
+  name             = "promtail"
+  repository       = "https://grafana.github.io/helm-charts"
+  chart            = "promtail"
+  namespace        = "monitoring"
+  version          = "6.16.4"
+  create_namespace = false
+  timeout          = 180
+
+  values = [
+    <<-YAML
+    config:
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+    tolerations:
+      - key: system-only
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+      - operator: Exists
+    YAML
+  ]
+
+  depends_on = [helm_release.loki]
 }

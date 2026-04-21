@@ -6,11 +6,18 @@ set -euo pipefail
 
 CLUSTER_NAME="chaos-eks"
 AWS_REGION="ap-northeast-2"
-KEY_PATH="$HOME/.ssh/chaos-eks-key.pem" # EC2 Key Pair 생성할 때 생성된 것
+KEY_PATH="$HOME/.ssh/chaos-eks-key.pem"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ── 사전 확인 ──────────────────────────────────────────────────
 echo "=== 사전 확인 ==="
+
+for cmd in terraform aws kubectl helm ssh scp; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "❌ '$cmd' 명령어를 찾을 수 없습니다. 설치 후 재실행하세요."
+    exit 1
+  fi
+done
 
 if [ ! -f "$KEY_PATH" ]; then
   echo "❌ Key Pair 없음: $KEY_PATH"
@@ -20,7 +27,7 @@ fi
 
 if [ ! -f "$SCRIPT_DIR/../terraform/1-base/terraform.tfvars" ]; then
   echo "❌ terraform.tfvars 없음"
-  echo "   terraform/1-base/terraform.tfvars.example을 복사해서 값을 채우세요."
+  echo "   terraform/1-base/terraform.tfvars 파일을 생성하세요."
   exit 1
 fi
 
@@ -30,7 +37,7 @@ chmod 400 "$KEY_PATH"
 echo ""
 echo "=== [1/5] 인프라 구축 (VPC + EKS + EC2) ==="
 cd "$SCRIPT_DIR/../terraform/1-base"
-terraform init -upgrade
+terraform init
 terraform apply -auto-approve
 
 EC2_IP=$(terraform output -raw ec2_public_ip)
@@ -67,7 +74,7 @@ scp -o StrictHostKeyChecking=no -i "$KEY_PATH" \
 echo ""
 echo "=== [4/5] 플랫폼 설치 (Istio + 모니터링 + Chaos Mesh + Online Boutique) ==="
 cd "$SCRIPT_DIR/../terraform/2-platform"
-terraform init -upgrade
+terraform init
 terraform apply -auto-approve
 echo "✅ 플랫폼 설치 완료"
 
@@ -75,16 +82,28 @@ echo "✅ 플랫폼 설치 완료"
 echo ""
 echo "=== [5/5] EC2 서비스 시작 ==="
 
-ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
-  "nohup kubectl port-forward svc/kube-prometheus-stack-prometheus \
-   -n monitoring 9090:9090 > /var/log/pf-prometheus.log 2>&1 &"
+# setsid + stdin=/dev/null → SSH 세션 종료 후에도 프로세스 유지
+ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
+  "setsid nohup kubectl port-forward svc/kube-prometheus-stack-prometheus \
+   -n monitoring 9090:9090 </dev/null >/var/log/pf-prometheus.log 2>&1"
 
-ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
-  "nohup kubectl port-forward svc/loki \
-   -n monitoring 3100:3100 > /var/log/pf-loki.log 2>&1 &"
+ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
+  "setsid nohup kubectl port-forward svc/loki \
+   -n monitoring 3100:3100 </dev/null >/var/log/pf-loki.log 2>&1"
 
-ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
-  "cd ~/iac-nextjs && nohup npm start > /var/log/nextjs.log 2>&1 &"
+# Next.js: 빌드 완료 여부 확인 후 시작
+NEXTJS_BUILT=$(ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
+  "test -f /var/log/nextjs_build_done && echo yes || echo no")
+
+if [ "$NEXTJS_BUILT" = "yes" ]; then
+  ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
+    "cd ~/iac-nextjs && setsid nohup npm start </dev/null >/var/log/nextjs.log 2>&1"
+  echo "✅ Next.js 시작됨"
+else
+  echo "⚠️  Next.js 빌드 미완료 — Phase 2 완료 후 EC2에서 수동 시작:"
+  echo "   ssh -i $KEY_PATH ec2-user@$EC2_IP"
+  echo "   cd ~/iac-nextjs && npm run build && npm start &"
+fi
 
 echo ""
 echo "══════════════════════════════════════════════"

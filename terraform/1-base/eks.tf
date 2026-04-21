@@ -3,11 +3,12 @@ module "eks" {
   version = "~> 20.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.30"
+  cluster_version = "1.31"
 
-  vpc_id                         = module.vpc.vpc_id
-  subnet_ids                     = module.vpc.private_subnets
-  cluster_endpoint_public_access = true
+  vpc_id                               = module.vpc.vpc_id
+  subnet_ids                           = module.vpc.private_subnets
+  cluster_endpoint_public_access       = true
+  cluster_endpoint_public_access_cidrs = [var.my_ip_cidr]
 
   # terraform apply 실행 IAM User → 자동으로 cluster-admin 권한 부여
   enable_cluster_creator_admin_permissions = true
@@ -63,7 +64,7 @@ module "eks" {
 
       min_size     = 2
       max_size     = 5
-      desired_size = 3
+      desired_size = 2 # Spot 쿼터 32 vCPU 승인 후 3으로 변경
 
       labels = { role = "workload" }
     }
