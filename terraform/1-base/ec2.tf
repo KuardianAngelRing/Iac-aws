@@ -76,12 +76,13 @@ resource "aws_security_group" "ec2_sg" {
 # ── EC2 Instance ───────────────────────────────────────────────
 
 resource "aws_instance" "control" {
-  ami                    = data.aws_ami.al2023.id
-  instance_type          = "t3.medium"
-  key_name               = var.key_name
-  subnet_id              = module.vpc.public_subnets[0]
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
+  ami                         = data.aws_ami.al2023.id
+  instance_type               = "t3.medium"
+  key_name                    = var.key_name
+  subnet_id                   = module.vpc.public_subnets[0]
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.ec2_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     cluster_name    = var.cluster_name
@@ -92,6 +93,7 @@ resource "aws_instance" "control" {
     supabase_key    = var.supabase_key
     anthropic_key   = var.anthropic_key
   }))
+  user_data_replace_on_change = true
 
   root_block_device {
     volume_size = 30

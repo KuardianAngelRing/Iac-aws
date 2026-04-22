@@ -7,7 +7,7 @@ exec > /var/log/user_data.log 2>&1
 
 echo "[1/7] 시스템 업데이트..."
 dnf update -y
-dnf install -y git curl tar unzip jq
+dnf install -y --allowerasing git curl tar unzip jq
 
 echo "[2/7] Node.js 20 설치..."
 curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
