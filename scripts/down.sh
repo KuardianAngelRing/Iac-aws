@@ -6,6 +6,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Terraform 자동화 환경 힌트 제거 + 전체 로그 파일 보존
+export TF_IN_AUTOMATION=true
+LOG_FILE="/tmp/iac-down-$(date +%Y%m%d-%H%M%S).log"
+echo "📝 전체 로그: $LOG_FILE"
+
 echo "══════════════════════════════════════════════"
 echo "   ⚠️  전체 AWS 리소스 삭제를 시작합니다"
 echo "   이 작업은 되돌릴 수 없습니다."
@@ -33,7 +38,7 @@ fi
 echo ""
 echo "=== [1/2] 플랫폼 삭제 (Helm 릴리스 + K8s 리소스) ==="
 cd "$SCRIPT_DIR/../terraform/2-platform"
-terraform destroy -auto-approve || {
+terraform destroy -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE" || {
   echo "WARNING: 2-platform destroy 중 오류 발생 — 계속 진행"
 }
 
@@ -41,7 +46,7 @@ terraform destroy -auto-approve || {
 echo ""
 echo "=== [2/2] 인프라 삭제 (EKS + EC2 + VPC + NAT Gateway) ==="
 cd "$SCRIPT_DIR/../terraform/1-base"
-terraform destroy -auto-approve
+terraform destroy -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE"
 
 echo ""
 echo "══════════════════════════════════════════════"

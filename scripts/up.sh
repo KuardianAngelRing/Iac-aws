@@ -9,6 +9,11 @@ AWS_REGION="ap-northeast-2"
 KEY_PATH="$HOME/.ssh/chaos-eks-key.pem"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Terraform 자동화 환경 힌트 제거 + 전체 로그 파일 보존
+export TF_IN_AUTOMATION=true
+LOG_FILE="/tmp/iac-up-$(date +%Y%m%d-%H%M%S).log"
+echo "📝 전체 로그: $LOG_FILE"
+
 # ── 사전 확인 ──────────────────────────────────────────────────
 echo "=== 사전 확인 ==="
 
@@ -37,8 +42,8 @@ chmod 400 "$KEY_PATH"
 echo ""
 echo "=== [1/5] 인프라 구축 (VPC + EKS + EC2) ==="
 cd "$SCRIPT_DIR/../terraform/1-base"
-terraform init
-terraform apply -auto-approve
+terraform init -input=false 2>&1 | tee -a "$LOG_FILE"
+terraform apply -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE"
 
 EC2_IP=$(terraform output -raw ec2_public_ip)
 echo "✅ EC2 IP: $EC2_IP"
@@ -74,8 +79,8 @@ scp -o StrictHostKeyChecking=no -i "$KEY_PATH" \
 echo ""
 echo "=== [4/5] 플랫폼 설치 (Istio + 모니터링 + Chaos Mesh + Online Boutique) ==="
 cd "$SCRIPT_DIR/../terraform/2-platform"
-terraform init
-terraform apply -auto-approve
+terraform init -input=false 2>&1 | tee -a "$LOG_FILE"
+terraform apply -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE"
 echo "✅ 플랫폼 설치 완료"
 
 # ── EC2에서 포트포워드 + Next.js 시작 ───────────────────────────
