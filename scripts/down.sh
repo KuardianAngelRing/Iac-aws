@@ -23,6 +23,7 @@ echo "=== [0/2] LoadBalancer 서비스 사전 삭제 ==="
 if command -v kubectl &>/dev/null; then
   aws eks update-kubeconfig --name chaos-eks --region ap-northeast-2 2>/dev/null || true
   kubectl delete svc -n online-boutique --all --timeout=90s 2>/dev/null || true
+  kubectl delete svc -n istio-system --all --timeout=90s 2>/dev/null || true
   echo "  LoadBalancer 삭제 완료 (또는 이미 없음)"
 else
   echo "  kubectl 없음 — 건너뜀 (EKS 접근 불가 시 정상)"

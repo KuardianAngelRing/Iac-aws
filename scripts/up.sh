@@ -82,6 +82,14 @@ echo "✅ 플랫폼 설치 완료"
 echo ""
 echo "=== [5/5] EC2 서비스 시작 ==="
 
+# terraform apply 완료 후에도 pod 기동까지 추가 시간 필요 — Ready 확인 후 port-forward
+echo "  Prometheus/Loki pod Ready 대기 (최대 5분)..."
+ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
+  "kubectl wait --for=condition=ready pod \
+   -l app.kubernetes.io/name=prometheus -n monitoring --timeout=300s 2>/dev/null || true && \
+   kubectl wait --for=condition=ready pod \
+   -l app.kubernetes.io/name=loki -n monitoring --timeout=300s 2>/dev/null || true"
+
 # setsid + stdin=/dev/null → SSH 세션 종료 후에도 프로세스 유지
 ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
   "setsid nohup kubectl port-forward svc/kube-prometheus-stack-prometheus \

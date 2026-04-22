@@ -38,7 +38,7 @@ module "eks" {
     # On-demand: Prometheus + Grafana + Loki + Chaos Mesh 컨트롤러 전용
     system = {
       name           = "system"
-      instance_types = ["m5.large"]
+      instance_types = ["m5.xlarge"]
       capacity_type  = "ON_DEMAND"
 
       min_size     = 1

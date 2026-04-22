@@ -44,7 +44,7 @@ resource "aws_iam_instance_profile" "ec2_profile" {
 
 resource "aws_security_group" "ec2_sg" {
   name        = "${var.cluster_name}-ec2-sg"
-  description = "EC2 제어 서버 보안 그룹"
+  description = "EC2 control server security group"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -56,7 +56,7 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   ingress {
-    description = "Next.js 대시보드"
+    description = "Next.js dashboard"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
