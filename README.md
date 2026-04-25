@@ -78,7 +78,7 @@ R = 0.4 × Availability + 0.3 × LatencyScore + 0.3 × RecoverySpeed
 | **0.3** | LatencyScore | `min(1, p99_baseline / p99_current)` |
 | **0.3** | RecoverySpeed | `1 - clip(MTTR / 60s, 0, 1)` |
 
-루프 종료 시 **Before / After 비교 리포트** 자동 생성 → Supabase에 저장 → Next.js 대시보드 시각화.
+루프 종료 시 **Before / After 비교 리포트** 자동 생성 → Supabase에 저장 → Next.js 대시보드 시각화
 
 ---
 
