@@ -79,12 +79,12 @@ Iac-aws/
 
 ### 1. 로컬 도구 설치
 
-macOS 기준 (Homebrew):
+macOS 기준 (Homebrew)
 ```bash
 brew install terraform awscli kubectl helm
 ```
 
-버전 확인:
+버전 확인
 ```bash
 terraform -version    # >= 1.6
 aws --version
@@ -102,18 +102,18 @@ aws configure
 # Default output format: json
 ```
 
-확인:
+확인
 ```bash
 aws sts get-caller-identity
 ```
 
-> IAM 사용자에게 **AdministratorAccess** 권한 필요.
+> IAM 사용자에게 **AdministratorAccess** 권한 필요
 
 ### 3. EC2 Key Pair 생성
 
 AWS 콘솔 → EC2 → Key Pairs → **Create key pair** → 이름 `chaos-eks-key`, 포맷 `.pem` → 다운로드
 
-다운로드 받은 `.pem` 파일을 `~/.ssh/`로 옮기고 권한 설정:
+다운로드 받은 `.pem` 파일을 `~/.ssh/`로 옮기고 권한 설정
 ```bash
 mv ~/Downloads/chaos-eks-key.pem ~/.ssh/
 chmod 400 ~/.ssh/chaos-eks-key.pem
@@ -121,7 +121,7 @@ chmod 400 ~/.ssh/chaos-eks-key.pem
 
 ### 4. Spot vCPU 쿼터 확인 (선택)
 
-`m5.xlarge × 2 = 8 vCPU` 사용. 기본 한도 5 vCPU면 부족할 수 있음.
+`m5.xlarge × 2 = 8 vCPU` 사용. 기본 한도 5 vCPU면 부족할 수 있음
 
 ```bash
 aws service-quotas get-service-quota \
@@ -129,17 +129,16 @@ aws service-quotas get-service-quota \
   --region ap-northeast-2 --query 'Quota.Value'
 ```
 
-> 8 미만이면 AWS 콘솔 → Service Quotas → "All Standard Spot Instance Requests"에서 증설 신청.
+> 8 미만이면 AWS 콘솔 → Service Quotas → "All Standard Spot Instance Requests"에서 증설 신청
 
 ### 5. `terraform.tfvars` 작성
 
 ```bash
 cd terraform/1-base
-cp terraform.tfvars.example terraform.tfvars   # 예시 파일 있으면
-# 또는 신규 작성
+cp terraform.tfvars.example terraform.tfvars 
 ```
 
-`terraform/1-base/terraform.tfvars` 내용:
+`terraform/1-base/terraform.tfvars` 내용
 ```hcl
 aws_region   = "ap-northeast-2"
 key_name     = "chaos-eks-key"        # 3단계에서 만든 Key Pair 이름
@@ -150,7 +149,7 @@ my_ip_cidr   = "0.0.0.0/0"            # 본인 IP/32 권장 (보안)
 ### 6. 구축 실행
 
 ```bash
-cd ../..              # 프로젝트 루트로
+cd ../..              
 ./scripts/up.sh
 ```
 
@@ -165,7 +164,7 @@ cd ../..              # 프로젝트 루트로
 
 ### 7. 접속 / 검증
 
-모든 kubectl 명령은 **로컬 맥에서 직접** 실행 (`./scripts/up.sh`가 kubeconfig 자동 설정).
+모든 kubectl 명령은 **로컬 맥에서 직접** 실행 (`./scripts/up.sh`가 kubeconfig 자동 설정)
 
 #### 🛒 Online Boutique 사이트
 ```bash
@@ -190,7 +189,7 @@ kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80
 ```bash
 ./scripts/down.sh
 ```
-→ `yes` 입력 → 약 10~15분 후 모든 AWS 리소스 삭제.
+→ `yes` 입력 → 약 10~15분 후 모든 AWS 리소스 삭제
 
 ---
 
