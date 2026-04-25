@@ -77,21 +77,120 @@ Iac-aws/
 
 ## 시작하기
 
+### 1. 로컬 도구 설치
+
+macOS 기준 (Homebrew):
 ```bash
-# 환경설정 파일 구성 필요 - /worker/.env & /terraform/1-base/terraform.tfvars
-
-# 구축 (~20분)
-./scripts/up.sh
-## [1/5] terraform apply 1-base     ← EKS 생성만 ~15분                          
-## [2/5] kubeconfig 설정
-## [3/5] EC2 user_data 완료 대기    ← Node.js/Python 설치, 레포 클론
-## [4/5] terraform apply 2-platform ← Istio/모니터링/Chaos Mesh/Online Boutique
-## [5/5] EC2 port-forward + Next.js 시작  
-
-# 삭제 (비용 $0)
-./scripts/down.sh
-## "yes" 입력 → 전체 삭제 → 비용 $0 
+brew install terraform awscli kubectl helm
 ```
+
+버전 확인:
+```bash
+terraform -version    # >= 1.6
+aws --version
+kubectl version --client
+helm version
+```
+
+### 2. AWS 자격증명 설정
+
+```bash
+aws configure
+# AWS Access Key ID:     <IAM 사용자 키>
+# AWS Secret Access Key: <시크릿>
+# Default region:        ap-northeast-2
+# Default output format: json
+```
+
+확인:
+```bash
+aws sts get-caller-identity
+```
+
+> IAM 사용자에게 **AdministratorAccess** 권한 필요.
+
+### 3. EC2 Key Pair 생성
+
+AWS 콘솔 → EC2 → Key Pairs → **Create key pair** → 이름 `chaos-eks-key`, 포맷 `.pem` → 다운로드
+
+다운로드 받은 `.pem` 파일을 `~/.ssh/`로 옮기고 권한 설정:
+```bash
+mv ~/Downloads/chaos-eks-key.pem ~/.ssh/
+chmod 400 ~/.ssh/chaos-eks-key.pem
+```
+
+### 4. Spot vCPU 쿼터 확인 (선택)
+
+`m5.xlarge × 2 = 8 vCPU` 사용. 기본 한도 5 vCPU면 부족할 수 있음.
+
+```bash
+aws service-quotas get-service-quota \
+  --service-code ec2 --quota-code L-34B43A08 \
+  --region ap-northeast-2 --query 'Quota.Value'
+```
+
+> 8 미만이면 AWS 콘솔 → Service Quotas → "All Standard Spot Instance Requests"에서 증설 신청.
+
+### 5. `terraform.tfvars` 작성
+
+```bash
+cd terraform/1-base
+cp terraform.tfvars.example terraform.tfvars   # 예시 파일 있으면
+# 또는 신규 작성
+```
+
+`terraform/1-base/terraform.tfvars` 내용:
+```hcl
+aws_region   = "ap-northeast-2"
+key_name     = "chaos-eks-key"        # 3단계에서 만든 Key Pair 이름
+iac_aws_repo = "https://github.com/<your-org>/Iac-aws"
+my_ip_cidr   = "0.0.0.0/0"            # 본인 IP/32 권장 (보안)
+```
+
+### 6. 구축 실행
+
+```bash
+cd ../..              # 프로젝트 루트로
+./scripts/up.sh
+```
+
+소요 약 22~28분. 5단계 자동 진행:
+```
+[1/5] terraform apply 1-base       ← VPC + EKS + EC2 + 노드그룹 (~14분)
+[2/5] 로컬 kubeconfig 설정          ← 즉시
+[3/5] EC2 user_data 완료 대기       ← kubectl/helm/git 설치 (~2분)
+[4/5] terraform apply 2-platform   ← Istio + 모니터링 + Chaos Mesh + Online Boutique (~6~8분)
+[5/5] EC2 port-forward 시작        ← Prometheus 9090 / Loki 3100
+```
+
+### 7. 접속 / 검증
+
+모든 kubectl 명령은 **로컬 맥에서 직접** 실행 (`./scripts/up.sh`가 kubeconfig 자동 설정).
+
+#### 🛒 Online Boutique 사이트
+```bash
+kubectl get svc frontend-external -n online-boutique
+```
+→ EXTERNAL-IP의 ELB 주소를 브라우저에 입력.
+
+#### ⚙️ Chaos Mesh Dashboard (실험 GUI)
+```bash
+kubectl port-forward svc/chaos-dashboard -n chaos-mesh 2333:2333
+```
+→ 브라우저: `http://localhost:2333`
+
+#### 📊 Grafana
+```bash
+kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80
+```
+→ 브라우저: `http://localhost:3000`
+
+### 8. 종료 (비용 $0)
+
+```bash
+./scripts/down.sh
+```
+→ `yes` 입력 → 약 10~15분 후 모든 AWS 리소스 삭제.
 
 ---
 
