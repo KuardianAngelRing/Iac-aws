@@ -36,8 +36,12 @@ override.tf.json
 .terraformrc
 terraform.rc
 
-# DOCS
-docs
+# DOCS - 설계 문서는 로컬에만, README 참조 자료(assets, issues)는 push
+docs/*
+!docs/assets/
+!docs/assets/**
+!docs/issues/
+!docs/issues/**
 
 # 환경 변수 / 시크릿
 .env
