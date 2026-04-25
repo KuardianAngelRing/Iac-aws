@@ -1,4 +1,4 @@
-# Chaos EKS
+# EKS + Chaos Mesh - Iac Repository
 
 <div align="center">
 
