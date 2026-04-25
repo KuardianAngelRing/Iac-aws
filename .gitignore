@@ -40,8 +40,6 @@ terraform.rc
 docs/*
 !docs/assets/
 !docs/assets/**
-!docs/issues/
-!docs/issues/**
 
 # 환경 변수 / 시크릿
 .env
