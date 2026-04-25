@@ -17,6 +17,24 @@ module "eks" {
     coredns    = { most_recent = true }
     kube-proxy = { most_recent = true }
     vpc-cni    = { most_recent = true }
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+    }
+  }
+
+  # API 서버 → istiod webhook(targetPort 15017) 호출 허용.
+  # 기본 EKS 모듈은 4443/6443/8443/9443/443만 열어 두므로 Istio 1.x의
+  # 비표준 포트 15017이 막혀 sidecar-injector webhook 호출이 silent timeout 발생.
+  node_security_group_additional_rules = {
+    ingress_cluster_istiod_webhook = {
+      description                   = "Cluster API to istiod webhook (15017)"
+      protocol                      = "tcp"
+      from_port                     = 15017
+      to_port                       = 15017
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
   }
 
   # EC2 IAM Role → EKS cluster-admin (kubectl 사용을 위해)
@@ -71,4 +89,21 @@ module "eks" {
   }
 
   tags = local.common_tags
+}
+
+# EBS CSI driver가 EBS 볼륨을 동적 프로비저닝하기 위한 IRSA.
+# EKS는 EBS CSI driver를 자동 설치하지 않으며 (1.23+), driver는 자체 IAM 권한이 필요함.
+module "ebs_csi_irsa_role" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.0"
+
+  role_name             = "${var.cluster_name}-ebs-csi"
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = module.eks.oidc_provider_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
+  }
 }

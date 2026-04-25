@@ -18,31 +18,8 @@ variable "iac_aws_repo" {
   type        = string
 }
 
-variable "iac_nextjs_repo" {
-  description = "iac-nextjs GitHub 레포 URL"
-  type        = string
-}
-
-variable "supabase_url" {
-  description = "Supabase 프로젝트 URL"
-  type        = string
-}
-
-variable "supabase_key" {
-  description = "Supabase anon key"
-  type        = string
-  sensitive   = true
-}
-
-variable "anthropic_key" {
-  description = "Anthropic API Key (Phase 3에서 사용)"
-  type        = string
-  default     = ""
-  sensitive   = true
-}
-
 variable "my_ip_cidr" {
-  description = "관리자 IP CIDR (SSH + EKS endpoint + Next.js 접근 제한). 예: 123.45.67.89/32"
+  description = "관리자 IP CIDR (SSH + EKS endpoint 접근 제한). 예: 123.45.67.89/32"
   type        = string
   default     = "0.0.0.0/0"
 }

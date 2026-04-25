@@ -55,14 +55,6 @@ resource "aws_security_group" "ec2_sg" {
     cidr_blocks = [var.my_ip_cidr]
   }
 
-  ingress {
-    description = "Next.js dashboard"
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = [var.my_ip_cidr]
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -85,13 +77,9 @@ resource "aws_instance" "control" {
   iam_instance_profile        = aws_iam_instance_profile.ec2_profile.name
 
   user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
-    cluster_name    = var.cluster_name
-    aws_region      = var.aws_region
-    iac_aws_repo    = var.iac_aws_repo
-    iac_nextjs_repo = var.iac_nextjs_repo
-    supabase_url    = var.supabase_url
-    supabase_key    = var.supabase_key
-    anthropic_key   = var.anthropic_key
+    cluster_name = var.cluster_name
+    aws_region   = var.aws_region
+    iac_aws_repo = var.iac_aws_repo
   }))
   user_data_replace_on_change = true
 

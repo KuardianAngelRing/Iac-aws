@@ -17,8 +17,3 @@ output "cluster_certificate_authority_data" {
   value     = module.eks.cluster_certificate_authority_data
   sensitive = true
 }
-
-output "dashboard_url" {
-  description = "Next.js 대시보드 URL"
-  value       = "http://${aws_instance.control.public_ip}:3000"
-}

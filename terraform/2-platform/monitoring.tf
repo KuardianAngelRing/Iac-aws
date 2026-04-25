@@ -93,8 +93,12 @@ resource "helm_release" "loki" {
               period: 24h
     singleBinary:
       replicas: 1
+      # Loki 6.x: storage.type=filesystem 사용 시 persistence 필수.
+      # 비활성화하면 컨테이너 read-only rootfs에서 /var/loki mkdir 실패.
       persistence:
-        enabled: false
+        enabled: true
+        size: 5Gi
+        storageClass: gp2
       tolerations:
         - key: system-only
           operator: Equal

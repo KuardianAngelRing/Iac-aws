@@ -83,9 +83,9 @@ terraform init -input=false 2>&1 | tee -a "$LOG_FILE"
 terraform apply -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE"
 echo "✅ 플랫폼 설치 완료"
 
-# ── EC2에서 포트포워드 + Next.js 시작 ───────────────────────────
+# ── EC2에서 포트포워드 (Prometheus / Loki) ──────────────────────
 echo ""
-echo "=== [5/5] EC2 서비스 시작 ==="
+echo "=== [5/5] EC2 port-forward 시작 ==="
 
 # terraform apply 완료 후에도 pod 기동까지 추가 시간 필요 — Ready 확인 후 port-forward
 echo "  Prometheus/Loki pod Ready 대기 (최대 5분)..."
@@ -104,28 +104,20 @@ ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
   "setsid nohup kubectl port-forward svc/loki \
    -n monitoring 3100:3100 </dev/null >/var/log/pf-loki.log 2>&1"
 
-# Next.js: 빌드 완료 여부 확인 후 시작
-NEXTJS_BUILT=$(ssh -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
-  "test -f /var/log/nextjs_build_done && echo yes || echo no")
-
-if [ "$NEXTJS_BUILT" = "yes" ]; then
-  ssh -f -o StrictHostKeyChecking=no -i "$KEY_PATH" "ec2-user@$EC2_IP" \
-    "cd ~/iac-nextjs && setsid nohup npm start </dev/null >/var/log/nextjs.log 2>&1"
-  echo "✅ Next.js 시작됨"
-else
-  echo "⚠️  Next.js 빌드 미완료 — Phase 2 완료 후 EC2에서 수동 시작:"
-  echo "   ssh -i $KEY_PATH ec2-user@$EC2_IP"
-  echo "   cd ~/iac-nextjs && npm run build && npm start &"
-fi
+echo "✅ port-forward 시작됨 (Prometheus 9090, Loki 3100)"
 
 echo ""
 echo "══════════════════════════════════════════════"
 echo "   ✅ 구축 완료!"
 echo "══════════════════════════════════════════════"
-echo "   대시보드:    http://$EC2_IP:3000"
 echo "   SSH:         ssh -i $KEY_PATH ec2-user@$EC2_IP"
-echo "   Prometheus:  http://$EC2_IP:9090 (SSH 터널 후)"
 echo ""
 echo "   Online Boutique LoadBalancer IP:"
 echo "   kubectl get svc frontend-external -n online-boutique"
+echo ""
+echo "   Grafana / Chaos Mesh 대시보드:"
+echo "   ssh -i $KEY_PATH -L 3000:localhost:3000 ec2-user@$EC2_IP \\"
+echo "     'kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80'"
+echo "   ssh -i $KEY_PATH -L 2333:localhost:2333 ec2-user@$EC2_IP \\"
+echo "     'kubectl port-forward svc/chaos-dashboard -n chaos-mesh 2333:2333'"
 echo "══════════════════════════════════════════════"

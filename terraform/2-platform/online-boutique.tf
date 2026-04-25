@@ -15,6 +15,7 @@ resource "helm_release" "online_boutique" {
   depends_on = [
     kubernetes_namespace.online_boutique,
     helm_release.istiod,
+    null_resource.wait_istiod_webhook,
   ]
 }
 
