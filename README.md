@@ -78,7 +78,7 @@ R = 0.4 × Availability + 0.3 × LatencyScore + 0.3 × RecoverySpeed
 | **0.3** | LatencyScore | `min(1, p99_baseline / p99_current)` |
 | **0.3** | RecoverySpeed | `1 - clip(MTTR / 60s, 0, 1)` |
 
-루프 종료 시 **Before / After 비교 리포트** 자동 생성 → Supabase에 저장 → Next.js 대시보드 시각화
+루프 종료 시 **Before / After 비교 리포트** 자동 생성 → SQLite에 저장 → FastAPI 대시보드 시각화
 
 ---
 
@@ -95,8 +95,8 @@ R = 0.4 × Availability + 0.3 × LatencyScore + 0.3 × RecoverySpeed
 | **💥  Chaos** | Chaos Mesh 2.8 |
 | **📊  Observability** | Prometheus, Grafana, Loki, Promtail |
 | **🤖  AI** | Anthropic Claude (Sonnet 4.6), LangGraph |
-| **💾  Realtime DB** | Supabase (Postgres + Realtime) |
-| **🎨  Dashboard** | Next.js 14 (App Router, FSD 2.1+), TypeScript |
+| **💾  Database** | SQLite (단일 파일, 경량) |
+| **🎨  Dashboard** | FastAPI + Jinja + HTMX + Alpine.js + Chart.js |
 | **🚀  GitOps** | ArgoCD |
 | **🛒  SUT** | Google Cloud Online Boutique (11 microservices) |
 
@@ -111,8 +111,7 @@ KuardianAngelRing/
 ├── 📦 terraform/
 │   ├── 1-base/              # VPC + EKS + EC2 + IRSA
 │   └── 2-platform/          # Istio + 모니터링 + Chaos Mesh + Boutique
-├── 🤖 worker/               # LangGraph AI 루프 (Python)
-├── 🎨 ../iac-nextjs/        # Next.js 14 대시보드 (별도 레포)
+├── 🎨 ../chaoslab/          # FastAPI 대시보드 + AI 루프 (별도 레포)
 ├── 🚀 argocd/               # GitOps Application 매니페스트
 ├── 💥 chaos-experiments/    # 카오스 시나리오 모음 (CRD YAML)
 └── 📜 scripts/
@@ -227,11 +226,9 @@ kubectl port-forward svc/kube-prometheus-stack-grafana -n monitoring 3000:80
 
 ## 🗺️ Roadmap
 
-- [x] **Phase 1** — EKS 인프라 + Chaos Mesh + 모니터링 자동 구축
-- [x] **Phase 2** — Next.js 14 + Supabase Realtime 대시보드
-- [x] **Phase 3** — LangGraph AI 루프 + R 지수 자동 개선
-- [x] **Phase 4** — ArgoCD GitOps + sample-app 선언적 관리
-- [x] **Phase 5** — End-to-end 시연 + Before/After 리포트 자동화
+- [x] **Phase 1** — EKS 인프라 + Chaos Mesh + 모니터링 (코드 완료 · 미배포)
+- [ ] **Phase 2** — ChaosLab 대시보드 (FastAPI) + GitOps 빌드/배포 + 카오스/모니터링
+- [ ] **Phase 3** — 에이전틱 AI 루프 (카오스 결과 해석 → Istio 파라미터 자동 개선) + Before/After 리포트
 
 ---
 
