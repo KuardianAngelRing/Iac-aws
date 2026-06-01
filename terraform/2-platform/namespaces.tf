@@ -24,3 +24,27 @@ resource "kubernetes_namespace" "online_boutique" {
     }
   }
 }
+
+# ── Slice 2: GitOps + 빌드 + SUT ──────────────────────────────
+
+resource "kubernetes_namespace" "argocd" {
+  metadata {
+    name = "argocd"
+  }
+}
+
+resource "kubernetes_namespace" "argo" {
+  metadata {
+    name = "argo" # Argo Workflows (in-cluster 빌드)
+  }
+}
+
+# 카오스 테스트 대상(SUT) 앱들이 GitOps로 배포되는 네임스페이스.
+resource "kubernetes_namespace" "sut" {
+  metadata {
+    name = "sut"
+    labels = {
+      "istio-injection" = "enabled" # 사이드카 → NetworkChaos + 메트릭 수집
+    }
+  }
+}
