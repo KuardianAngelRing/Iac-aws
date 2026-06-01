@@ -30,6 +30,25 @@ resource "aws_iam_role_policy_attachment" "ec2_ecr" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
+# 대시보드(RealGitOps bootstrap)가 앱별 ECR 레포를 생성/조회하기 위한 권한.
+resource "aws_iam_role_policy" "ec2_ecr_manage" {
+  name = "${var.cluster_name}-ec2-ecr-manage"
+  role = aws_iam_role.ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ecr:CreateRepository",
+        "ecr:DescribeRepositories",
+        "ecr:TagResource",
+      ]
+      Resource = "*"
+    }]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "ec2_ssm" {
   role       = aws_iam_role.ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
