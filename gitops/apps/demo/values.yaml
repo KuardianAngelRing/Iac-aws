@@ -1,0 +1,13 @@
+# 2a 검증용 데모 — 공개 이미지(nginx)로 ArgoCD 자동 배포 확인.
+# RealGitOps(2c)는 build 후 image 줄만 ECR_URL/{app}:<sha8> 로 갱신한다.
+name: demo
+image: nginxdemos/hello:plain-text
+port: 80
+healthPath: /
+replicas: 1
+istio:
+  enabled: true
+  timeout: 3s
+  retries:
+    attempts: 2
+    perTryTimeout: 1s

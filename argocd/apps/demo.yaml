@@ -1,0 +1,27 @@
+# 2a 검증용 데모 앱 — generic-app chart + gitops values 조합(multi-source).
+# RealGitOps(2c)가 앱 등록 시 이 형태의 파일을 자동 생성한다.
+# 검증 후 삭제 가능: rm argocd/apps/demo.yaml gitops/apps/demo/values.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: demo
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/KuardianAngelRing/Iac-aws
+      targetRevision: main
+      path: helm/generic-app
+      helm:
+        valueFiles:
+          - $values/gitops/apps/demo/values.yaml
+    - repoURL: https://github.com/KuardianAngelRing/Iac-aws
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sut
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,23 @@
+# App-of-Apps 루트. up.sh가 1회 apply.
+# argocd/apps/ 폴더의 모든 Application 매니페스트를 watch → 자동 등록/sync.
+# (down.sh 후 다시 up.sh 해도 git의 앱 목록이 그대로 복원됨)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KuardianAngelRing/Iac-aws
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
