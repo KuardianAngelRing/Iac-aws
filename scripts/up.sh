@@ -83,6 +83,15 @@ terraform init -input=false 2>&1 | tee -a "$LOG_FILE"
 terraform apply -auto-approve -compact-warnings -input=false 2>&1 | tee -a "$LOG_FILE"
 echo "✅ 플랫폼 설치 완료"
 
+# ── App-of-Apps 루트 등록 (GitOps) ──────────────────────────────
+echo ""
+echo "=== App-of-Apps 루트 등록 ==="
+# ArgoCD CRD 준비 대기 후 root-app apply → argocd/apps/ 자동 sync
+kubectl wait --for=condition=established --timeout=120s \
+  crd/applications.argoproj.io 2>/dev/null || true
+kubectl apply -f "$SCRIPT_DIR/../argocd/root-app.yaml"
+echo "✅ root-app 등록 — ArgoCD가 argocd/apps/ 를 sync합니다"
+
 # ── EC2에서 포트포워드 (Prometheus / Loki) ──────────────────────
 echo ""
 echo "=== [5/5] EC2 port-forward 시작 ==="
