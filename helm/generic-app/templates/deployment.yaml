@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Values.name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+    spec:
+      # system 노드그룹은 system-only taint로 격리됨 → toleration 없으면
+      # 자동으로 workload(spot) 노드에 스케줄됨.
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: {{ .Values.port }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthPath }}
+              port: {{ .Values.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthPath }}
+              port: {{ .Values.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20

@@ -1,0 +1,22 @@
+{{- if .Values.istio.enabled }}
+# Istio VirtualService — 메시 내부 라우팅 + timeout/retry 튜닝 지점.
+# Phase 3 AI 루프가 이 timeout/retries 값을 자동 조정해 회복탄력성을 개선한다.
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  hosts:
+    - {{ .Values.name }}
+  http:
+    - route:
+        - destination:
+            host: {{ .Values.name }}
+            port:
+              number: {{ .Values.port }}
+      timeout: {{ .Values.istio.timeout }}
+      retries:
+        attempts: {{ .Values.istio.retries.attempts }}
+        perTryTimeout: {{ .Values.istio.retries.perTryTimeout }}
+{{- end }}

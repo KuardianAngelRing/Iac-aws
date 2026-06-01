@@ -1,0 +1,14 @@
+# generic-app 기본값. 앱별 override는 gitops/apps/{app}/values.yaml 에서.
+name: app
+image: nginx:latest        # RealGitOps가 빌드 후 ECR_URL/{app}:<sha8> 로 갱신
+port: 8080
+healthPath: /healthz
+replicas: 1
+
+# Istio VirtualService 튜닝 파라미터 (Phase 3 AI가 조정)
+istio:
+  enabled: true
+  timeout: 3s
+  retries:
+    attempts: 2
+    perTryTimeout: 1s

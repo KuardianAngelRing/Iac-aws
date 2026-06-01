@@ -1,0 +1,6 @@
+apiVersion: v2
+name: generic-app
+description: 모든 프레임워크(SUT)가 공유하는 단일 배포 chart — values.yaml의 image/port/healthPath/replicas만 다름
+type: application
+version: 0.1.0
+appVersion: "1.0"
