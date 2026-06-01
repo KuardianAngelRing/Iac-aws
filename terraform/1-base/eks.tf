@@ -5,6 +5,10 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = "1.31"
 
+  # 라이브 클러스터 실제값(false)에 정렬 — addon은 cluster_addons(EKS 관리형)로 설치하므로
+  # self-managed bootstrap은 꺼야 중복이 없다(권장값). import 후 강제 재생성 방지.
+  bootstrap_self_managed_addons = false
+
   vpc_id                               = module.vpc.vpc_id
   subnet_ids                           = module.vpc.private_subnets
   cluster_endpoint_public_access       = true
