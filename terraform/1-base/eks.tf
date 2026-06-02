@@ -20,7 +20,10 @@ module "eks" {
   cluster_addons = {
     coredns    = { most_recent = true }
     kube-proxy = { most_recent = true }
-    vpc-cni    = { most_recent = true }
+    # before_compute: CNI를 노드그룹보다 먼저 설치 → 노드가 Ready되어야 노드그룹이
+    # ACTIVE되는데 CNI가 없어 NotReady로 멈추는 데드락 방지.
+    # (bootstrap_self_managed_addons=false 라 부트스트랩 CNI가 없으므로 필수)
+    vpc-cni    = { most_recent = true, before_compute = true }
     aws-ebs-csi-driver = {
       most_recent              = true
       service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
