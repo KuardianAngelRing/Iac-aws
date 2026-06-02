@@ -1,5 +1,5 @@
 name: opus-backend
-image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/opus-backend:placeholder
+image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/opus-backend:2b6e61ff
 port: 8080
 healthPath: /actuator/health
 replicas: 1
