@@ -34,6 +34,7 @@ spec:
           {{- end }}
           ports:
             - containerPort: {{ .Values.port }}
+          {{- if .Values.healthPath }}
           readinessProbe:
             httpGet:
               path: {{ .Values.healthPath }}
@@ -46,3 +47,15 @@ spec:
               port: {{ .Values.port }}
             initialDelaySeconds: 15
             periodSeconds: 20
+          {{- else }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          {{- end }}
