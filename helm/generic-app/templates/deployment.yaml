@@ -20,6 +20,18 @@ spec:
       containers:
         - name: {{ .Values.name }}
           image: {{ .Values.image }}
+          {{- if .Values.env }}
+          env:
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.secretName }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secretName }}
+          {{- end }}
           ports:
             - containerPort: {{ .Values.port }}
           readinessProbe:

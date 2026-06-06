@@ -5,6 +5,10 @@ port: 8080
 healthPath: /healthz
 replicas: 1
 
+# 앱별 env(평문) / secret(K8s Secret 참조). gitops/apps/{app}/values.yaml 가 override.
+env: {}            # { KEY: "value" }
+secretName: ""     # 비어있으면 envFrom 생략
+
 # Istio VirtualService 튜닝 파라미터 (Phase 3 AI가 조정)
 istio:
   enabled: true
