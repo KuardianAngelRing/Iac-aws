@@ -3,6 +3,10 @@ image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:placeholder
 port: 8080
 healthPath: /healthz
 replicas: 1
+env:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/comon"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+secretName: comon-be-env
 istio:
   enabled: true
   timeout: 3s
