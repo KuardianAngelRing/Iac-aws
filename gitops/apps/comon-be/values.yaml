@@ -1,11 +1,12 @@
 name: comon-be
-image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:5281920f
+image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:placeholder
 port: 8080
 healthPath: /healthz
 replicas: 1
 env:
   SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/comon"
   SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
+  PROBLEM_COLLECTION_BAEKJOON_PROBLEMURL: "https://www.acmicpc.net/problem/"
 secretName: comon-be-env
 istio:
   enabled: true
