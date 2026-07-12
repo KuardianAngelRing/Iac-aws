@@ -1,5 +1,5 @@
 name: comon-be
-image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:placeholder
+image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:7ad0dd92
 port: 8080
 healthPath: /healthz
 replicas: 1
