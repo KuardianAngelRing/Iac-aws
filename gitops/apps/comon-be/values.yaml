@@ -1,0 +1,11 @@
+name: comon-be
+image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/comon-be:placeholder
+port: 8080
+healthPath: /healthz
+replicas: 1
+istio:
+  enabled: true
+  timeout: 3s
+  retries:
+    attempts: 2
+    perTryTimeout: 1s
