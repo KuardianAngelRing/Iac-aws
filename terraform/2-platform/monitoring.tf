@@ -21,13 +21,36 @@ resource "helm_release" "kube_prometheus_stack" {
         scrapeInterval: 15s
         retention: 7d
         additionalScrapeConfigs:
-          - job_name: istio-mesh
+          # Istio 사이드카 merged stats (prometheus.io/* 어노테이션, 15020) —
+          # istio_requests_total / istio_request_duration_milliseconds 수집.
+          # sut = chaoslab이 사용자 앱을 배포·카오스 주입하는 네임스페이스 (Slice 4 실측)
+          - job_name: istio-proxies
             kubernetes_sd_configs:
-              - role: endpoints
+              - role: pod
                 namespaces:
                   names:
                     - istio-system
                     - online-boutique
+                    - sut
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                action: keep
+                regex: "true"
+              - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+                target_label: __address__
+              - source_labels: [__meta_kubernetes_namespace]
+                action: replace
+                target_label: namespace
+              - source_labels: [__meta_kubernetes_pod_name]
+                action: replace
+                target_label: pod
 
     grafana:
       tolerations:

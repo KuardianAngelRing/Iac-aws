@@ -1,0 +1,17 @@
+{{- if .Values.istio.enabled }}
+---
+# Istio DestinationRule — circuit breaker(outlierDetection) 튜닝 지점.
+# Phase 3 AI 루프의 개선 대상 3종(timeout/retry/circuitBreaker) 중 CB가 여기 산다.
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  host: {{ .Values.name }}
+  trafficPolicy:
+    outlierDetection:
+      consecutive5xxErrors: {{ .Values.istio.circuitBreaker.consecutive5xxErrors }}
+      interval: {{ .Values.istio.circuitBreaker.interval }}
+      baseEjectionTime: {{ .Values.istio.circuitBreaker.baseEjectionTime }}
+{{- end }}
