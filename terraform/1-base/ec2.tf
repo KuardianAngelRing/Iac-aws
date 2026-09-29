@@ -108,4 +108,10 @@ resource "aws_instance" "control" {
   }
 
   tags = merge(local.common_tags, { Name = "${var.cluster_name}-control" })
+
+  # AMI 데이터소스(most_recent)가 새 이미지로 바뀌어도 인스턴스를 교체하지 않는다 —
+  # 클러스터가 떠 있는 동안 SG 규칙 같은 작은 변경을 apply할 때 EC2 교체가 섞이던 문제(2026-09-29).
+  lifecycle {
+    ignore_changes = [ami]
+  }
 }
