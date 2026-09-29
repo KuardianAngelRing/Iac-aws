@@ -42,6 +42,17 @@ module "eks" {
       type                          = "ingress"
       source_cluster_security_group = true
     }
+    # API 서버 → 파드 프록시(kubectl proxy / connect_get_namespaced_service_proxy) 허용.
+    # chaoslab 최종 회귀가 관측 요청을 API 서버 서비스 프록시로 보내는데(k3s와 동일 경로),
+    # 위 목록 밖 포트(80/8080 등)는 막혀 있어 타임아웃(2026-09-29 라이브 확인).
+    ingress_cluster_to_node_all = {
+      description                   = "Cluster API to node all traffic (apiserver proxy to pods)"
+      protocol                      = "-1"
+      from_port                     = 0
+      to_port                       = 0
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
   }
 
   # EC2 IAM Role → EKS cluster-admin (kubectl 사용을 위해)
