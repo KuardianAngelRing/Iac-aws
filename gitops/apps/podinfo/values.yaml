@@ -1,5 +1,5 @@
 name: podinfo
-image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/podinfo:placeholder
+image: 792612172752.dkr.ecr.ap-northeast-2.amazonaws.com/podinfo:3e0ff8ae
 port: 9898
 healthPath: /healthz
 replicas: 1
